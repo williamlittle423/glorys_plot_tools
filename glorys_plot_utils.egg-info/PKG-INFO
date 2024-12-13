@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: glorys_plot_utils
+Version: 0.1.0
+Summary: A package for plotting various variables and datasets of GLORYS data.
+Home-page: https://github.com/yourusername/my_project
+Author: William Little
+Author-email: willbythesea@gmail.com
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: matplotlib
+Requires-Dist: cartopy
+Requires-Dist: xarray
+Requires-Dist: cmocean
+Requires-Dist: netCDF4
