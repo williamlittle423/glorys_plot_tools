@@ -216,27 +216,20 @@ def process_and_save(glorys_file, duct_file, time_idx):
 
     add_data_to_duct_file(duct_file, results)
 
-def calculate_duct_properties(glorys_fp, duct_fp, len_t):
+def calculate_duct_properties(glorys_fp, duct_save_fp):
+
+    glorys_data = nc.Dataset(glorys_fp, 'r')
+    len_t = len(glorys_data['time'])
+    glorys_data.close()
 
     # Create the duct file to hold data
-    create_duct_file(duct_fp, glorys_fp)
+    create_duct_file(duct_save_fp, glorys_fp)
 
     # Fill the existing glorys data with sound speed values
     print('Filling GLORYS dataset with sound speed values...')
     populate_c_vals(glorys_fp)
 
-    # Calculate the duct properties for each time step and store them in the new duct NC dataset
+    # Calculate the duct properties for each time step and store them in the new duct dataset
     print('Beginning duct calculations...')
     for t in tqdm(range(len_t)):
-        process_and_save(glorys_fp, duct_fp, t)
-
-# TESTS
-if __name__ == '__main__':
-
-    data = nc.Dataset('cmems_mod_glo_phy_my_0.083deg_P1D-m_multi-vars_80.00W-42.00W_30.00N-53.00N_0.49-380.21m_1993-06-01-1993-06-05.nc', 'r')
-    len_t = len(data['time'])
-    data.close()
-
-    calculate_duct_properties('cmems_mod_glo_phy_my_0.083deg_P1D-m_multi-vars_80.00W-42.00W_30.00N-53.00N_0.49-380.21m_1993-06-01-1993-06-05.nc',
-                              'duct_data_80.00W-42.00W_30.00N-53.00N_0.49-380.21m_1993-06-01-1993-06-05.nc',
-                              len_t)
+        process_and_save(glorys_fp, duct_save_fp, t)

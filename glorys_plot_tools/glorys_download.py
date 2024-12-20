@@ -16,8 +16,6 @@ def download_data(
     end_day=1,
     minimum_depth=0.49402499198913574,
     maximum_depth=0.49402499198913574,
-    force_download=True,
-    subset_method="strict",
     disable_progress_bar=False
 ):
 
@@ -33,6 +31,8 @@ def download_data(
         
     if minimum_depth < 0.49402499198913574:
         minimum_depth = 0.49402499198913574
+        if maximum_depth < minimum_depth:
+            maximum_depth = minimum_depth
         print("Minimum depth must be greater than 0.494m. Setting minimum depth to 0.494m.")
     
     copernicusmarine.subset(
@@ -47,7 +47,5 @@ def download_data(
         end_datetime=end_datetime,
         minimum_depth=minimum_depth,
         maximum_depth=maximum_depth,
-        force_download=force_download,
-        subset_method=subset_method,
         disable_progress_bar=disable_progress_bar,
     )

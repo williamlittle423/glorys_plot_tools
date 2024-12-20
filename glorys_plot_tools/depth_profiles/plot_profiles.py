@@ -92,7 +92,7 @@ def plot_profiles(
         print('Duct depth included. Performing duct analysis on data...')
         # Perform duct analysis on the data
         duct_fp = 'duct_data_' + suffix + '.nc'
-        calculate_duct_properties(file_path, duct_fp, len_t)
+        calculate_duct_properties(file_path, duct_fp)
 
 
     if animation == 1:

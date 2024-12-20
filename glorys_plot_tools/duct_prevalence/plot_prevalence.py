@@ -20,11 +20,15 @@ def plot_prevalence(
     plot_title = "",
     gulf_stream_contour=1,
     shelf_slope_contour=1,
-    depth_contour=1
+    depth_contour=1,
+    dataset_id="cmems_mod_glo_phy_my_0.083deg_P1D-m",
+    dataset_version="202311"
     ):
 
     # Download the dataset
     glorys_download.download_data(
+        dataset_id=dataset_id,
+        dataset_version=dataset_version,
         start_year=start_year,
         start_month=start_month,
         start_day=start_day,
@@ -55,10 +59,6 @@ def plot_prevalence(
 
     file_path = matching_files[0]
 
-    glorys_dataset = nc.Dataset(file_path, 'r')
-    len_t = len(glorys_dataset['time'])
-    glorys_dataset.close()
-
     stem = file_path.rsplit('.', 1)[0]
     parts = stem.rsplit('_', 4)
     suffix = '_'.join(parts[-4:])
@@ -66,7 +66,7 @@ def plot_prevalence(
     duct_fp = 'duct_data_' + suffix + '.nc'
 
     # Calculate duct data using multiprocessing
-    calculate_duct_properties(file_path, duct_fp, len_t)
+    calculate_duct_properties(file_path, duct_fp)
 
     # Calculate total prevalence
     calculate_total_prevalence(duct_fp, file_path, suffix)
