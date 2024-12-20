@@ -1,4 +1,4 @@
-from glorys_plot_utils.duct_prevalence.plot_prevalence import plot_prevalence
+from glorys_plot_tools.duct_prevalence.plot_prevalence import plot_prevalence
 
 plot_prevalence(
         start_year=1993,

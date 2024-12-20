@@ -6,6 +6,8 @@ import glob
 import cartopy.feature as cfeature
 import glorys_plot_tools.glorys_download as glorys_download
 from datetime import datetime, timedelta
+import scipy.io
+import pkg_resources
 import cmocean
 import matplotlib
 import matplotlib.patches as mpatches
@@ -79,8 +81,12 @@ def plot_glorys_variable(
     depth_contour=1,
     ssf_contour=1,
     gulf_stream_contour=1,
+    depth_contour_color='cyan',
+    ssf_contour_color='red',
+    gulf_stream_contour_color='yellow',
     save_path=None,
     cmap="jet",
+    show_plot=True
 ):
     """
     Plot a GLORYS variable at a specific time point or averaged over a specified period,
@@ -134,12 +140,63 @@ def plot_glorys_variable(
     depths = ds.variables["depth"][:]
     depth_idx = np.abs(depths - depth_m).argmin()
 
-    # Extract data
+    """
+    Extract SSF data from .mat file
+    """
+    ssf_file_path = pkg_resources.resource_filename('glorys_plot_tools', 'contours/SSFANNUAL_1973_2017.mat')
+
+    # Load the .mat file
+    mat_file = scipy.io.loadmat(ssf_file_path)
+
+    # Extract the SSFANNUAL structure
+    SSFANNUAL = mat_file['SSFANNUAL']
+
+    # Extract the fields
+    time = SSFANNUAL['time'][0, 0].flatten()
+    lat = SSFANNUAL['lat'][0, 0]
+    lon = SSFANNUAL['lon'][0, 0].flatten()
+
+    # Remove NaN values from lat and corresponding lon
+    # This is required for the plot to work
+    valid_idx = ~np.isnan(lat).any(axis=1)
+    lat = lat[valid_idx, :]
+    time = time[valid_idx]
+
+    start_idx = 249
+    mean_lat = np.nanmean(lat[start_idx::12], axis=0)
+
+    """
+    Extract Depth Contour data from netCDF4 file
+    """
+    depth_contour_fp = pkg_resources.resource_filename('glorys_plot_tools', 'contours/contour_200m_depth.nc')
+
+    gebco_dataset = nc.Dataset(depth_contour_fp)
+
+    # Gebco data
+    gebco_latitudes = gebco_dataset['lat']
+    gebco_longitudes = gebco_dataset['lon']
+    gebco_altitudes = gebco_dataset['elevation'][:]
+    gebco_lat_grid, gebco_lon_grid = np.meshgrid(gebco_latitudes, gebco_longitudes, indexing='ij')
+
+    # Extract data and take the mean over time if an end date was specified
     if end_year is not None:
-        data = ds.variables[var][:, depth_idx, :, :]
+        if ds.variables[var].ndim == 4:
+            data = ds.variables[var][:, depth_idx, :, :]
+        else:
+            data = ds.variables[var][:, :, :]
+        temps = ds.variables['thetao'][:]
         data = np.mean(data, axis=0)
+        temps = np.mean(temps, axis=0)
     else:
-        data = ds.variables[var][0, depth_idx, :, :]
+        if ds.variables[var].ndim == 4:
+            data = ds.variables[var][0, depth_idx, :, :]
+        else:
+            data = ds.variables[var][0, :, :]
+        if gulf_stream_contour:
+            temps = ds.variables['thetao'][0, :, :, :]
+
+    if gulf_stream_contour:
+        lat_grid, lon_grid = np.meshgrid(latitudes, longitudes, indexing='ij')
 
     # Subset lat/lon
     lat_mask = (latitudes >= lat_min) & (latitudes <= lat_max)
@@ -175,38 +232,44 @@ def plot_glorys_variable(
     gl.xlabel_style = {'size': 12, 'color': 'black'}
     gl.ylabel_style = {'size': 12, 'color': 'black'}
 
-    # Add contours if specified. We mimic the color scheme from the second script.
-    # Note: Without additional data sources, we just replicate the style using given colors.
     contour_handles = []
     matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
 
-    # Create some dummy contours from the data itself for demonstration
-    # In reality, you'd add your own contour data as in the second script.
-    if depth_contour:
-        depth_ct = ax.contour(longitudes, latitudes, data, levels=[np.nanmean(data)], colors='cyan', linewidths=0.5, transform=ccrs.PlateCarree())
-        contour_handles.append(mpatches.Patch(color='cyan', label='200m Depth'))
-    if gulf_stream_contour:
-        gulf_ct = ax.contour(longitudes, latitudes, data, levels=[np.nanmean(data) + np.nanstd(data)], colors='yellow', linewidths=0.5, transform=ccrs.PlateCarree())
-        contour_handles.append(mpatches.Patch(color='yellow', label='Gulf Stream'))
-    if ssf_contour:
-        ssf_ct = ax.contour(longitudes, latitudes, data, levels=[np.nanmean(data) - np.nanstd(data)], colors='red', linewidths=0.5, transform=ccrs.PlateCarree())
-        contour_handles.append(mpatches.Patch(color='red', label='Shelf-Slope Front (SSF)'))
+    # Reshape temps from (1, N_lat, N_lon) to (N_lat, N_lon)
+    temps = temps[0, :, :]
 
-    if depth_m < 0.5:
-        ax.set_title(f'{surface_var_to_label[var]} at {depth_m}m {suffix}', fontsize=12)
+    # Optionally plot contours
+    if depth_contour:
+        gebco_depth_contour = ax.contour(gebco_lon_grid, gebco_lat_grid, gebco_altitudes, levels=[-200], colors=depth_contour_color, linewidths=0.5, transform=ccrs.PlateCarree())
+        contour_handles.append(mpatches.Patch(color=depth_contour_color, label='200m Depth'))
+    if gulf_stream_contour:
+        glorys_temp_contour = ax.contour(lon_grid, lat_grid, temps, levels=[15], colors=gulf_stream_contour_color, linewidths=0.5, transform=ccrs.PlateCarree())
+        contour_handles.append(mpatches.Patch(color=gulf_stream_contour_color, label='Gulf Stream'))
+    if ssf_contour:
+        ax.plot(lon, mean_lat, color=ssf_contour_color, linewidth=1, transform=ccrs.PlateCarree(), label='Shelf Slope Front (SSF)')
+        contour_handles.append(mpatches.Patch(color=ssf_contour_color, label='Shelf-Slope Front (SSF)'))
+        
+    if title is not None:
+        ax.set_title(title, fontsize=14)
     else:
-        ax.set_title(f'{non_surface_var_to_label[var]} at {depth_m}m {suffix}', fontsize=12)
+        if depth_m < 0.5:
+            ax.set_title(f'{surface_var_to_label[var]} {suffix}', fontsize=14)
+        else:
+            ax.set_title(f'{non_surface_var_to_label[var]} {suffix}', fontsize=14)
 
     cbar = plt.colorbar(img, ax=ax, orientation="vertical", pad=0.05)
     cbar.ax.tick_params(labelsize=10)
-    cbar.set_label(f"{var_to_cbar_label[var]}", fontsize=10)
+    cbar.set_label(f"{var_to_cbar_label[var]}", fontsize=12)
 
     # Add legend if contours are present
     if contour_handles:
         plt.legend(handles=contour_handles, loc='upper right')
 
-    # Save or show the plot
-    #plt.savefig(save_path, dpi=200)
-    plt.show()
+    if save_path == None:
+        save_path = f'{var}_{suffix}.png'
+    
+    plt.savefig(save_path, dpi=200)
+    if show_plot:
+        plt.show()
 
     ds.close()

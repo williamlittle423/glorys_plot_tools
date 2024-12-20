@@ -1,4 +1,4 @@
-from glorys_plot_utils.depth_profiles import plot_profiles
+from glorys_plot_tools.depth_profiles import plot_profiles
 
 plot_profiles.plot_profiles(
     42.0,
