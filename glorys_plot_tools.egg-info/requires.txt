@@ -1,9 +1,0 @@
-numpy
-scipy
-matplotlib
-cartopy
-xarray
-cmocean
-netCDF4
-copernicusmarine
-gsw
