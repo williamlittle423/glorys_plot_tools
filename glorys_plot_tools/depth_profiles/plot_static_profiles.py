@@ -88,7 +88,7 @@ def plot_mean_depth_profiles_w_daily(glorys_fp, duct_filename, daily_lists, save
     else:
         title = f'Glorys Depth Profiles {suffix}'
     
-    fig.suptitle(title, fontsize=18, y=1.0)  # Adjust 'y' to position the title higher 
+    fig.suptitle(title, fontsize=18, y=1.0)
 
     if save_path:
         plt.savefig(save_path, dpi=230)

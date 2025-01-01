@@ -80,12 +80,11 @@ def plot_depth_profiles_animated(filename, duct_filename, xmin_xmax, daily_lists
     # Create figure and axes with increased figure size
     fig, axes = plt.subplots(1, 4, figsize=(18, 13), sharey=True)
 
-    # Adjust subplot parameters to allocate more space for the title and borders
     fig.subplots_adjust(
         left=0.1,      # Left margin
         right=0.95,    # Right margin
         bottom=0.1,    # Bottom margin
-        top=0.9,      # Top margin (leave space for the title)
+        top=0.9,      # Top margin
         hspace=0.1,     # Horizontal space between subplots
         wspace=0.3      # Vertical space between subplots
     )
@@ -134,11 +133,10 @@ def plot_depth_profiles_animated(filename, duct_filename, xmin_xmax, daily_lists
         # Place the legend in the top right
         axes[3].legend(loc='upper right', fontsize=16)
 
-        # Set the updated title with the new date string
         days = time_idx
         new_date_str = increment_latter_date(suffix, days=days)
         title = f'Glorys Depth Profiles {new_date_str}'
-        fig.suptitle(title, fontsize=20, y=0.95)  # Adjust 'y' to position the title higher
+        fig.suptitle(title, fontsize=20, y=0.95)
 
     ani = animation.FuncAnimation(fig, update, frames=num_t, repeat=True)
 

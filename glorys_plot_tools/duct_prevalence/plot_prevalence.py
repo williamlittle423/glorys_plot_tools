@@ -78,4 +78,4 @@ def plot_prevalence(
     prevalence_fp = f"duct-prevalence_{suffix}.nc"
 
     # Plot the prevalence
-    plot_probability_with_contours(file_path, prevalence_fp, suffix, depth_contour, shelf_slope_contour, gulf_stream_contour)
+    plot_probability_with_contours(file_path, prevalence_fp, suffix, depth_contour, shelf_slope_contour, gulf_stream_contour, plot_title)

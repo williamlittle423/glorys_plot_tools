@@ -184,7 +184,11 @@ def plot_glorys_variable(
             data = ds.variables[var][:, depth_idx, :, :]
         else:
             data = ds.variables[var][:, :, :]
-        temps = ds.variables['thetao'][:]
+        if gulf_stream_contour:
+            # check if temps is in ds.variables
+            if 'thetao' not in ds.variables:
+                raise ValueError("Gulf stream contour requires 'thetao' variable in dataset. Unable to perform this with duct datasets.")
+            temps = ds.variables['thetao'][:]
         data = np.mean(data, axis=0)
         temps = np.mean(temps, axis=0)
     else:
@@ -193,6 +197,8 @@ def plot_glorys_variable(
         else:
             data = ds.variables[var][0, :, :]
         if gulf_stream_contour:
+            if 'thetao' not in ds.variables:
+                raise ValueError("Gulf stream contour requires 'thetao' variable in dataset. Unable to perform this with duct datasets.")
             temps = ds.variables['thetao'][0, :, :, :]
 
     if gulf_stream_contour:
@@ -236,6 +242,7 @@ def plot_glorys_variable(
     matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
 
     # Reshape temps from (1, N_lat, N_lon) to (N_lat, N_lon)
+    var
     temps = temps[0, :, :]
 
     # Optionally plot contours

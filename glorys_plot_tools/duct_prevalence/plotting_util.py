@@ -27,7 +27,7 @@ month_enum = {
     11: 'December',
 }
 
-def plot_probability_with_contours(glorys_fp, prevalence_fp, suffix, depth_contour, ssf_contour, gulf_stream_contour):
+def plot_probability_with_contours(glorys_fp, prevalence_fp, suffix, depth_contour, ssf_contour, gulf_stream_contour, plot_title):
     glorys_dataset = nc.Dataset(glorys_fp, 'r')
     save_path = F'duct_prevalence_{suffix}.png'
     data = nc.Dataset(prevalence_fp, 'r')
@@ -112,7 +112,10 @@ def plot_probability_with_contours(glorys_fp, prevalence_fp, suffix, depth_conto
     gl.ylabel_style = {'size': 12, 'color': 'black'}
 
     # Color bar and title
-    plt.title(f'Subsurface Duct Prevalence (%) {suffix}', fontsize=12)
+    if plot_title:
+        plt.title(plot_title, fontsize=12)
+    else:
+        plt.title(f'Subsurface Duct Prevalence (%) {suffix}', fontsize=12)
     cbar = plt.colorbar(img, ax=ax, label='Probability (%)', orientation='vertical')
     cbar.ax.tick_params(labelsize=10)
     plt.legend(handles=contour_handles, loc='upper right')
