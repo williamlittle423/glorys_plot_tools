@@ -43,6 +43,5 @@ setup(
         'Topic :: Scientific/Engineering :: Atmospheric Science',
         'Topic :: Scientific/Engineering :: Visualization',
     ],
-    python_requires='>=3.10',
     keywords='GLORYS oceanography plotting visualization',
 )
