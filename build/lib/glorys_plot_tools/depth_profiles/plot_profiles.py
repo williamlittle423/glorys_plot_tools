@@ -23,6 +23,7 @@ def plot_profiles(
     static_save_path=None,
     static_include_mean=1,
     static_include_daily=1,
+    exising_fp=None,
     fps=2,
     static=1,
 ):
@@ -30,49 +31,52 @@ def plot_profiles(
     Plot the static and/or animated profiles of the temperature, salinity, and density at a given location and time.
     """
 
-    # Download the dataset
-    glorys_download.download_data(
-        start_year=start_year,
-        start_month=start_month,
-        start_day=start_day,
-        end_year=end_year,
-        end_month=end_month,
-        end_day=end_day,
-        minimum_latitude=lat,
-        maximum_latitude=lat,
-        minimum_longitude=lon,
-        maximum_longitude=lon,
-        maximum_depth=max_depth
-    )
-    
-    # Parameters validation
-    if start_month < 1 or start_month > 12:
-        raise ValueError(f"Invalid start month: {start_month}")
-    if end_month < 1 or end_month > 12:
-        raise ValueError(f"Invalid end month: {end_month}")
-    if start_day < 1 or start_day > 31:
-        raise ValueError(f"Invalid start day: {start_day}")
-    if end_day < 1 or end_day > 31:
-        raise ValueError(f"Invalid end day: {end_day}")
-    if animation == 0 and static == 0:
-        raise ValueError("At least one of 'animation' or 'static' must be set to 1.")
+    if exising_fp is not None:
+        file_path = exising_fp
+    else:
+        # Download the dataset
+        glorys_download.download_data(
+            start_year=start_year,
+            start_month=start_month,
+            start_day=start_day,
+            end_year=end_year,
+            end_month=end_month,
+            end_day=end_day,
+            minimum_latitude=lat,
+            maximum_latitude=lat,
+            minimum_longitude=lon,
+            maximum_longitude=lon,
+            maximum_depth=max_depth
+        )
+        
+        # Parameters validation
+        if start_month < 1 or start_month > 12:
+            raise ValueError(f"Invalid start month: {start_month}")
+        if end_month < 1 or end_month > 12:
+            raise ValueError(f"Invalid end month: {end_month}")
+        if start_day < 1 or start_day > 31:
+            raise ValueError(f"Invalid start day: {start_day}")
+        if end_day < 1 or end_day > 31:
+            raise ValueError(f"Invalid end day: {end_day}")
+        if animation == 0 and static == 0:
+            raise ValueError("At least one of 'animation' or 'static' must be set to 1.")
 
-    # GLORYS date format: 1993-01-01T00:00:00",
-    start_month = f'0{start_month}' if start_month < 10 else str(start_month)
-    start_day = f'0{start_day}' if start_day < 10 else str(start_day)
-    
-    end_month = f'0{start_month}' if end_month < 10 else str(end_month)
-    end_day = f'0{end_day}' if end_day < 10 else str(end_day)
+        # GLORYS date format: 1993-01-01T00:00:00",
+        start_month = f'0{start_month}' if start_month < 10 else str(start_month)
+        start_day = f'0{start_day}' if start_day < 10 else str(start_day)
+        
+        end_month = f'0{start_month}' if end_month < 10 else str(end_month)
+        end_day = f'0{end_day}' if end_day < 10 else str(end_day)
 
-    # Find the dataset of the following format: 'cmems*.nc
-    file_pattern = 'cmems*.nc'
+        # Find the dataset of the following format: 'cmems*.nc
+        file_pattern = 'cmems*.nc'
 
-    matching_files = glob.glob(file_pattern)
+        matching_files = glob.glob(file_pattern)
 
-    if not matching_files:
-        raise FileNotFoundError(f"Error finding downloaded file: {file_pattern}")
+        if not matching_files:
+            raise FileNotFoundError(f"Error finding downloaded file: {file_pattern}")
 
-    file_path = matching_files[0]
+        file_path = matching_files[0]
 
     glorys_dataset = nc.Dataset(file_path, 'r')
     len_t = len(glorys_dataset['time'])
