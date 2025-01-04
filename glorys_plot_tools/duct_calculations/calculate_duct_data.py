@@ -2,10 +2,8 @@ import netCDF4 as nc
 import numpy as np
 from glorys_plot_tools.soundspeed import populate_c_vals
 from scipy.signal import find_peaks
-import multiprocessing
 from tqdm import tqdm
 import time
-import netCDF4 as nc
 
 def create_duct_file(filename, reference_file):
     """
@@ -31,17 +29,16 @@ def create_duct_file(filename, reference_file):
     """
     try:
         # Open the reference file in read mode
-        with nc.Dataset(reference_file, 'r') as ref:
-            # Retrieve dimension sizes
-            time_dim_size = len(ref.dimensions['time'])
-            lat_dim_size = len(ref.dimensions['latitude'])
-            lon_dim_size = len(ref.dimensions['longitude'])
+        ref = nc.Dataset(reference_file, 'r')
+    
+        time_dim_size = len(ref.dimensions['time'])
+        lat_dim_size = len(ref.dimensions['latitude'])
+        lon_dim_size = len(ref.dimensions['longitude'])
 
-            # Retrieve reference variables
-            ref_time = ref.variables['time']
-            ref_lat = ref.variables['latitude']
-            ref_lon = ref.variables['longitude']
-            ref.close()
+        # Retrieve reference variables
+        ref_time = ref.variables['time']
+        ref_lat = ref.variables['latitude']
+        ref_lon = ref.variables['longitude']
 
         # Open the new file in write mode
         with nc.Dataset(filename, 'w', format='NETCDF4') as new:
@@ -100,7 +97,8 @@ def create_duct_file(filename, reference_file):
             cutoff_frequency_var.long_name = "Cutoff Frequency"
             cutoff_frequency_var.units = "Hz"  # Replace with actual units
 
-            print(f"Successfully created NetCDF file '{filename}' with copied dimensions and variables.")
+            ref.close()
+
 
     except OSError as e:
         print(f"Error opening or modifying file: {e}")
@@ -183,7 +181,6 @@ def duct_properties_calc(data, lat: int, lon: int, time_idx: int, DEPTH_LIMITER=
         return (True, d_d, duct_strength, cutoff_frequency, delta_z, delta_C)  
 
 def process_chunk(time_idx, lat_idx, lon_idx, glorys_file, duct_file):
-    print('--------- 10 BEGININNG PROCESSING AND SAVING OPENING FILE ---------')
     GLORYS_data = nc.Dataset(glorys_file, 'r')
     duct_values = duct_properties_calc(GLORYS_data, lat_idx, lon_idx, time_idx)
     GLORYS_data.close()
@@ -204,7 +201,6 @@ def add_data_to_duct_file(duct_file, results):
     duct_data.close()
 
 def process_and_save(glorys_file, duct_file, time_idx):
-    print('--------- 10 BEGININNG PROCESSING AND SAVING OPENING FILE ---------')
     GLORYS_data = nc.Dataset(glorys_file, 'r')
     latitudes = GLORYS_data['latitude'][:]
     longitudes = GLORYS_data['longitude'][:]
@@ -212,40 +208,34 @@ def process_and_save(glorys_file, duct_file, time_idx):
     num_lon = len(longitudes)
     GLORYS_data.close()
 
-    args = [(time_idx, lat_idx, lon_idx, glorys_file, duct_file) for lat_idx in range(num_lat) for lon_idx in range(num_lon)]
+    # Build argument list (one entry per lat/lon combination)
+    args = [(time_idx, lat_idx, lon_idx, glorys_file, duct_file) 
+            for lat_idx in range(num_lat) 
+            for lon_idx in range(num_lon)]
 
-    with multiprocessing.Pool() as pool:
-        print('--------- 11 BEGINNING STARMAP ---------')
+    # Single-threaded processing:
+    results = []
+    for arg in args:
+        result = process_chunk(*arg)
+        results.append(result)
 
-        results = pool.starmap(process_chunk, args)
-
+    # Add results to the duct file
     add_data_to_duct_file(duct_file, results)
 
 def calculate_duct_properties(glorys_fp, duct_save_fp):
-
-    print('--------- 5 OPENING DATASET ---------')
-
-
     glorys_data = nc.Dataset(glorys_fp, 'r')
-
     len_t = len(glorys_data['time'])
     glorys_data.close()
 
-    print('--------- 6 CLOSED DATASET ---------')
 
     # Create the duct file to hold data
     create_duct_file(duct_save_fp, glorys_fp)
 
-    print('--------- 7 CREATED DUCT FILE ---------')
-
-    # Fill the existing glorys data with sound speed values
+    # Fill the existing GLORYS data with sound speed values
     print('Filling GLORYS dataset with sound speed values...')
     populate_c_vals(glorys_fp)
-
-    print('--------- 8 FILLED C VALS ---------')
 
     # Calculate the duct properties for each time step and store them in the new duct dataset
     print('Beginning duct calculations...')
     for t in tqdm(range(len_t)):
-        print('--------- 9 CALLING PROCESSING AND SAVING ---------')
         process_and_save(glorys_fp, duct_save_fp, t)

@@ -23,7 +23,7 @@ def plot_profiles(
     static_save_path=None,
     static_include_mean=1,
     static_include_daily=1,
-    exising_fp=None,
+    existing_fp=None,
     fps=2,
     static=1,
 ):
@@ -31,8 +31,8 @@ def plot_profiles(
     Plot the static and/or animated profiles of the temperature, salinity, and density at a given location and time.
     """
 
-    if exising_fp is not None:
-        file_path = exising_fp
+    if existing_fp is not None:
+        file_path = existing_fp
     else:
         # Download the dataset
         glorys_download.download_data(

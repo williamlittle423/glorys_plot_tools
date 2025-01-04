@@ -76,12 +76,12 @@ def plot_mean_depth_profiles_w_daily(glorys_fp, duct_filename, daily_lists, save
             axes[3].plot(daily_lists['c'][i], depths, color='grey', alpha=alphas[i])
     if static_include_mean == 1:
         axes[3].plot(sound_speed, depths, color='red')
-    if plot_duct == 1:
+    if plot_duct == 1 and not np.isnan(duct_depth):
         axes[3].axhline(y=duct_depth, color='black', linestyle='--', label=f'Mean Duct Depth ({duct_depth:.1f} m)')
+        axes[3].legend(fontsize=14)
     axes[3].set_xlabel('Sound Speed (m/s)', fontsize=14)
     axes[3].tick_params(axis='x', labelsize=14)   
     axes[3].set_xlim([np.nanmin(daily_lists['c']), np.nanmax(daily_lists['c'])])
-    axes[3].legend(fontsize=14)
     
     if title:
         title = title + f' {suffix}'

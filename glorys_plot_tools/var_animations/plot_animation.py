@@ -81,5 +81,10 @@ def plot_animation(
         overlay_region = (overlay_lonr, overlay_lonl, overlay_latb, overlay_latt)
     else:
         overlay_region = None
+
+    # convert dates to datetime objects
+    start_month = f"{start_month:02d}"
+    start_day = f"{start_day:02d}"
+    start_date = f'{start_year}-{start_month}-{start_day}'
     
-    plot_var_animation(glorys_fp, suffix, var, fig_width, fig_height, fps, dpi, depth_m, cmocean_cmap, overlay_region)
+    plot_var_animation(glorys_fp, suffix, var, fig_width, fig_height, fps, dpi, depth_m, cmocean_cmap, overlay_region, start_date)

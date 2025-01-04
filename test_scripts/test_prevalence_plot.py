@@ -7,8 +7,9 @@ plot_prevalence(
         end_year=1993,
         end_month=6,
         end_day=5,
-        lat_min=30,
-        lat_max=53,
-        lon_min=-80,
-        lon_max=-42,
+        lat_min=35,
+        lat_max=45,
+        lon_min=-68,
+        lon_max=-57,
+        exising_fp='cmems_mod_glo_phy_my_0.083deg_P1D-m_multi-vars_68.00W-57.00W_35.00N-45.00N_0.49-380.21m_1993-06-01-1993-06-05.nc'
     )

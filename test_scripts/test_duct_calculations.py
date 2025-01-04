@@ -13,6 +13,6 @@ calculate_ducts(
     end_day=7,
     dataset_id="cmems_mod_glo_phy_my_0.083deg_P1D-m",
     dataset_version="202311",
-    # existing_fp='cmems_mod_glo_phy_my_0.083deg_P1D-m_multi-vars_62.00W-59.00W_42.00N-45.00N_0.49-318.13m_2019-06-06-2019-06-20.nc',
+    existing_fp='cmems_mod_glo_phy_my_0.083deg_P1D-m_1735779836215.nc',
     ducts_save_fp=None
 )

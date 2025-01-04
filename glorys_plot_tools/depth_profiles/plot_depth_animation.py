@@ -89,6 +89,9 @@ def plot_depth_profiles_animated(filename, duct_filename, xmin_xmax, daily_lists
         wspace=0.3      # Vertical space between subplots
     )
 
+    if np.isnan(duct_depth):
+        print('Animation Warning: No ducts were found at this location over the specified period. ')
+
     def update(time_idx):
         for ax in axes:
             ax.clear()
@@ -96,7 +99,7 @@ def plot_depth_profiles_animated(filename, duct_filename, xmin_xmax, daily_lists
         # Temperature profile
         axes[0].plot(daily_lists['thetao'][time_idx, :], depths, label='Temperature', color='grey', alpha=0.5)
         axes[0].plot(temperature, depths, label='Temperature', color='blue')
-        if plot_duct_depth:
+        if plot_duct_depth and not np.isnan(duct_depth):
             axes[0].axhline(y=duct_depth, color='black', linestyle='--', label=f'Duct Depth ({duct_depth:.1f} m)')
         axes[0].set_xlabel('Temperature (°C)', fontsize=14, labelpad=10)
         axes[0].set_ylabel('Depth (m)', fontsize=14, labelpad=10)
@@ -107,7 +110,7 @@ def plot_depth_profiles_animated(filename, duct_filename, xmin_xmax, daily_lists
         # Salinity profile
         axes[1].plot(daily_lists['so'][time_idx, :], depths, color='grey', alpha=0.5)
         axes[1].plot(salinity, depths, label='Salinity', color='orange')
-        if plot_duct_depth:
+        if plot_duct_depth and not np.isnan(duct_depth):
             axes[1].axhline(y=duct_depth, color='black', linestyle='--', label=f'Duct Depth ({duct_depth:.1f} m)')
         axes[1].set_xlabel('Salinity (PSU)', fontsize=14, labelpad=10)
         axes[1].set_xlim([xmin_xmax['so'][0], xmin_xmax['so'][1]])
@@ -116,7 +119,7 @@ def plot_depth_profiles_animated(filename, duct_filename, xmin_xmax, daily_lists
         # Density profile
         axes[2].plot(daily_lists['density'][time_idx, :], depths, color='grey', alpha=0.5)
         axes[2].plot(density, depths, label='Density', color='green')
-        if plot_duct_depth:
+        if plot_duct_depth and not np.isnan(duct_depth):
             axes[2].axhline(y=duct_depth, color='black', linestyle='--', label=f'Duct Depth ({duct_depth:.1f} m)')
         axes[2].set_xlabel('Density (kg/m³)', fontsize=14, labelpad=10)
         axes[2].set_xlim([xmin_xmax['density'][0], xmin_xmax['density'][1]])
@@ -125,13 +128,13 @@ def plot_depth_profiles_animated(filename, duct_filename, xmin_xmax, daily_lists
         # Sound Speed profile
         axes[3].plot(daily_lists['c'][time_idx], depths, color='grey', alpha=0.5)
         axes[3].plot(sound_speed, depths, color='red')
-        if plot_duct_depth:
+        if plot_duct_depth and not np.isnan(duct_depth):
             axes[3].axhline(y=duct_depth, color='black', linestyle='--', label=f'Mean Duct Depth ({duct_depth:.1f} m)')
+            axes[3].legend(loc='upper right', fontsize=16)
         axes[3].set_xlabel('Sound Speed (m/s)', fontsize=14, labelpad=10)
         axes[3].set_xlim([xmin_xmax['c'][0], xmin_xmax['c'][1]])
         axes[3].tick_params(axis='x', labelsize=14)
         # Place the legend in the top right
-        axes[3].legend(loc='upper right', fontsize=16)
 
         days = time_idx
         new_date_str = increment_latter_date(suffix, days=days)
@@ -181,7 +184,6 @@ def find_global_x_lim(glorys_fp):
         xmin_, xmax_ = find_var_xmin_xmax(glorys_fp, var)
         xmin.append(xmin_)
         xmax.append(xmax_)
-        print(f"Variable: {var} - Min: {min(xmin)}, Max: {max(xmax)}")
         
         xmin_xmax[var] = (min(xmin), max(xmax))
     
@@ -204,7 +206,6 @@ def plot_depth_animation(glorys_fp, duct_fp, suffix, title, save_path, fps, plot
             
     xmin_xmax = find_global_x_lim(glorys_fp)
     
-    print('NUMBER OF TIME STEPS: ', len(dataset['time']))
 
     daily_temperature = dataset['thetao'][:, :, 0, 0]
     daily_salinity = dataset['so'][:, :, 0, 0]
